@@ -1,0 +1,91 @@
+name: Unpack .hnmod
+
+# Upload an .hnmod to the repository's root: this unpacks it, turns the mod's content into plain files under
+# content/, packs each folder of textures into textures.zip (with a readme.txt beside it), and deletes the
+# .hnmod and the nested .hmod it carried.
+
+on:
+  push:
+    paths:
+      - "*.hnmod"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  unpack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Unpack, pack the textures, remove the archives
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          files=(*.hnmod)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No .hnmod in the repository root, nothing to do."
+            exit 0
+          fi
+
+          # 1. The .hnmod: horizon-native.json and mixins/<id>/ (the Rust source).
+          for f in "${files[@]}"; do
+            echo "Unpacking $f"
+            unzip -o -q "$f" -d .
+            rm -- "$f"
+          done
+
+          # 2. The content mod (.hmod) the bundle carries: unpacked into content/<name>/, then removed.
+          while IFS= read -r hmod; do
+            name="$(basename "$hmod" .hmod)"
+            echo "Unpacking $hmod into content/$name"
+            mkdir -p "content/$name"
+            unzip -o -q "$hmod" -d "content/$name"
+            rm -- "$hmod"
+          done < <(find mixins -type f -name '*.hmod')
+
+          # 3. Textures: every folder that holds PNG files gets one textures.zip and a readme.txt, and no loose PNGs.
+          while IFS= read -r dir; do
+            (
+              cd "$dir"
+              pngs=(*.png)
+              [ ${#pngs[@]} -gt 0 ] || exit 0
+              zip -q -X textures.zip "${pngs[@]}"
+              rm -- "${pngs[@]}"
+              case "$(basename "$dir")" in
+                gui)
+                  cat > readme.txt <<'EOF'
+          The window pictures of the machines, packed in textures.zip. They were made for this mod.
+          EOF
+                  ;;
+                *)
+                  cat > readme.txt <<'EOF'
+          The textures of this folder are packed in textures.zip.
+
+          They come from IndustrialCraft 2 by Alblaka and the IC2 Dev Team. All rights to them are reserved by the
+          IC2 Dev Team. They are NOT covered by this repository's license, and are kept here only so the mod can be
+          rebuilt. They will be replaced, or used only with the team's permission.
+
+          Made for this mod, not taken from IC2: the cable surfaces (copper_cable.png, insulated_copper_cable.png,
+          gold_cable.png, hv_cable.png) in the block folder.
+          EOF
+                  ;;
+              esac
+            )
+          done < <(find content -type d -path '*/textures*' 2>/dev/null)
+
+          # 4. Commit what changed.
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Nothing changed."
+            exit 0
+          fi
+          git commit -m "Unpack ${files[*]}, pack the textures"
+          git push
+
+        
