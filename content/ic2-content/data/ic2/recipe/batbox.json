@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "p": "#minecraft:planks",
+    "c": "ic2:insulated_copper_cable",
+    "r": "minecraft:redstone"
+  },
+  "pattern": [
+    "pcp",
+    "rrr",
+    "ppp"
+  ],
+  "result": {
+    "id": "ic2:batbox",
+    "count": 1
+  },
+  "show_notification": true
+}

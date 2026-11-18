@@ -1,0 +1,11 @@
+{
+  "template": "minecraft:chorus_plant",
+  "connects_to": "#ic2:cable_connects",
+  "thickness": 4.0,
+  "properties": {
+    "hardness": 0.5,
+    "sounds": "minecraft:copper_block",
+    "requires_tool": false,
+    "explosion_resistance": 2.0
+  }
+}

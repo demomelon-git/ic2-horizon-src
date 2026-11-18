@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "cookingtime": 200,
+  "experience": 0.1,
+  "ingredient": "minecraft:slime_ball",
+  "result": {
+    "id": "ic2:rubber",
+    "count": 2
+  }
+}

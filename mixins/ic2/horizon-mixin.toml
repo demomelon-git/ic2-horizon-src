@@ -1,0 +1,136 @@
+[mod]
+id = "ic2"
+version = "0.1.0"
+priority = 100
+
+# The Horizon commit this bundle was written for (the same one the ae2 bundle was built on).
+[compatibility]
+horizon_revision = "6560641ba51a452f6bc2407baa4eb1b3be517ca8"
+
+# IC2's EU network, generator, solar panel, BatBox, electric furnace and macerator.
+[[module]]
+id = "core"
+file = "crates/horizon-client/src/game.rs"
+name = "port_ic2"
+source = "ic2.rs"
+
+[[injection]]
+id = "ic2-be"
+kind = "HEAD"
+hook = "block_entity"
+hook_version = 1
+helper = "ic2_be.rs"
+bindings = [
+  { name = "block", ty = "&str", value = "block" },
+  { name = "entity", ty = "&mut Option<(String, horizon_world::nbt::Compound)>", value = "&mut *entity" },
+]
+
+[[injection]]
+id = "ic2-be-ticks"
+kind = "HEAD"
+hook = "block_entity_ticks"
+hook_version = 1
+helper = "ic2_be_ticks.rs"
+bindings = [
+  { name = "block", ty = "&str", value = "block" },
+  { name = "ticks", ty = "&mut bool", value = "&mut *ticks" },
+]
+
+[[injection]]
+id = "ic2-be-container"
+kind = "HEAD"
+hook = "block_entity_container"
+hook_version = 1
+helper = "ic2_be_container.rs"
+bindings = [
+  { name = "block", ty = "&str", value = "block" },
+  { name = "container", ty = "&mut Option<horizon_client::containers::ModContainer>", value = "&mut *container" },
+]
+
+[[injection]]
+id = "ic2-be-tick"
+kind = "HEAD"
+hook = "block_entity_tick"
+hook_version = 1
+helper = "ic2_be_tick.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "pos", ty = "[i32; 3]", value = "pos" },
+  { name = "entity", ty = "&mut horizon_client::containers::ModBlockEntity", value = "&mut *entity" },
+]
+
+[[injection]]
+id = "ic2-server-tick"
+kind = "HEAD"
+hook = "server_tick"
+hook_version = 1
+helper = "ic2_server_tick.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "phase", ty = "&crate::game::native_lifecycle::ServerTickPhase", value = "&phase" },
+]
+
+[[injection]]
+id = "ic2-right-click"
+kind = "HEAD"
+hook = "right_click_block"
+hook_version = 1
+helper = "ic2_right_click.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "pos", ty = "[i32; 3]", value = "pos" },
+  { name = "face", ty = "[i32; 3]", value = "face" },
+  { name = "canceled", ty = "&mut bool", value = "&mut *canceled" },
+]
+
+[[injection]]
+id = "ic2-screen"
+kind = "HEAD"
+hook = "screen"
+hook_version = 1
+helper = "ic2_screen.rs"
+bindings = [
+  { name = "game", ty = "&crate::game::Game<'_>", value = "&*self" },
+  { name = "block", ty = "&str", value = "block" },
+  { name = "screen", ty = "&mut Option<crate::game::native_hooks::NativeScreen>", value = "&mut *screen" },
+]
+
+[[injection]]
+id = "ic2-screen-draw"
+kind = "HEAD"
+hook = "screen_draw"
+hook_version = 1
+helper = "ic2_screen_draw.rs"
+bindings = [
+  { name = "game", ty = "&crate::game::Game<'_>", value = "&*self" },
+  { name = "block", ty = "&str", value = "block" },
+  { name = "data", ty = "&[i32]", value = "data" },
+  { name = "batch", ty = "&mut horizon_client::hud::HudBatch", value = "&mut *batch" },
+  { name = "origin", ty = "[f32; 2]", value = "origin" },
+]
+
+[[injection]]
+id = "ic2-screen-tooltip"
+kind = "HEAD"
+hook = "screen_tooltip"
+hook_version = 1
+helper = "ic2_screen_tooltip.rs"
+bindings = [
+  { name = "game", ty = "&crate::game::Game<'_>", value = "&*self" },
+  { name = "block", ty = "&str", value = "block" },
+  { name = "at", ty = "[f32; 2]", value = "at" },
+  { name = "lines", ty = "&mut Vec<String>", value = "&mut *lines" },
+]
+
+# IC2's blocks and items, carried in the bundle as a content mod.
+[[injection]]
+id = "ic2-embedded-content"
+kind = "HEAD"
+cancellable = true
+target = "horizon_client::game::mods::content_root"
+helper = "ic2_embedded_content.rs"
+bindings = [
+  { name = "root", ty = "&std::path::Path", value = "root" },
+  { name = "enabled", ty = "&std::collections::BTreeSet<String>", value = "enabled" },
+  { name = "dev", ty = "&[std::path::PathBuf]", value = "dev" },
+]

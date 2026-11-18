@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "ic2:machine_casing",
+    "minecraft:furnace",
+    "ic2:circuit",
+    "minecraft:redstone"
+  ],
+  "result": {
+    "id": "ic2:electric_furnace",
+    "count": 1
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "i": "minecraft:iron_ingot",
+    "r": "minecraft:redstone",
+    "c": "ic2:copper_cable"
+  },
+  "pattern": [
+    "iii",
+    "rcr",
+    "iii"
+  ],
+  "result": {
+    "id": "ic2:circuit",
+    "count": 1
+  },
+  "show_notification": true
+}

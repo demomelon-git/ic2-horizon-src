@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "ic2:gold_cable",
+    "ic2:rubber",
+    "minecraft:iron_ingot"
+  ],
+  "result": {
+    "id": "ic2:hv_cable",
+    "count": 1
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "ic2:block/creative_generator_top",
+    "bottom": "ic2:block/creative_generator_bottom",
+    "side": "ic2:block/creative_generator_side",
+    "particle": "ic2:block/creative_generator_side"
+  }
+}

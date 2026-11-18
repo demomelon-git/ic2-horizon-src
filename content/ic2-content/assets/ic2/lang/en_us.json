@@ -1,0 +1,21 @@
+{
+  "block.ic2.batbox": "BatBox",
+  "block.ic2.copper_cable": "Copper Cable",
+  "block.ic2.creative_generator": "Creative Generator",
+  "block.ic2.electric_furnace": "Electric Furnace",
+  "block.ic2.generator": "Generator",
+  "block.ic2.gold_cable": "Gold Cable",
+  "block.ic2.hv_cable": "HV Cable",
+  "block.ic2.insulated_copper_cable": "Insulated Copper Cable",
+  "block.ic2.macerator": "Macerator",
+  "block.ic2.machine_casing": "Machine Casing",
+  "block.ic2.reinforced_glass": "Reinforced Glass",
+  "block.ic2.reinforced_stone": "Reinforced Stone",
+  "block.ic2.solar_panel": "Solar Panel",
+  "item.ic2.circuit": "Electronic Circuit",
+  "item.ic2.coal_dust": "Coal Dust",
+  "item.ic2.copper_dust": "Copper Dust",
+  "item.ic2.gold_dust": "Gold Dust",
+  "item.ic2.iron_dust": "Iron Dust",
+  "item.ic2.rubber": "Rubber"
+}

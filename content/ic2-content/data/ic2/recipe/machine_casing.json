@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "i": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    "iii",
+    "i i",
+    "iii"
+  ],
+  "result": {
+    "id": "ic2:machine_casing",
+    "count": 1
+  },
+  "show_notification": true
+}

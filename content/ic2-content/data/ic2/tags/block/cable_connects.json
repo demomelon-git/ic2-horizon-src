@@ -1,0 +1,14 @@
+{
+  "values": [
+    "ic2:copper_cable",
+    "ic2:insulated_copper_cable",
+    "ic2:gold_cable",
+    "ic2:hv_cable",
+    "ic2:generator",
+    "ic2:electric_furnace",
+    "ic2:macerator",
+    "ic2:batbox",
+    "ic2:solar_panel",
+    "ic2:creative_generator"
+  ]
+}

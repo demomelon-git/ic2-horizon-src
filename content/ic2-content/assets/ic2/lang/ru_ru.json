@@ -1,0 +1,21 @@
+{
+  "block.ic2.batbox": "БатБокс",
+  "block.ic2.copper_cable": "Медный кабель",
+  "block.ic2.creative_generator": "Творческий генератор",
+  "block.ic2.electric_furnace": "Электропечь",
+  "block.ic2.generator": "Генератор",
+  "block.ic2.gold_cable": "Золотой кабель",
+  "block.ic2.hv_cable": "Высоковольтный кабель",
+  "block.ic2.insulated_copper_cable": "Изолированный медный кабель",
+  "block.ic2.macerator": "Дробилка",
+  "block.ic2.machine_casing": "Корпус механизма",
+  "block.ic2.reinforced_glass": "Укреплённое стекло",
+  "block.ic2.reinforced_stone": "Укреплённый камень",
+  "block.ic2.solar_panel": "Солнечная панель",
+  "item.ic2.circuit": "Электронная схема",
+  "item.ic2.coal_dust": "Угольная пыль",
+  "item.ic2.copper_dust": "Медная пыль",
+  "item.ic2.gold_dust": "Золотая пыль",
+  "item.ic2.iron_dust": "Железная пыль",
+  "item.ic2.rubber": "Резина"
+}

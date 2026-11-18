@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "c": "ic2:circuit",
+    "m": "ic2:machine_casing",
+    "f": "minecraft:furnace"
+  },
+  "pattern": [
+    "c",
+    "m",
+    "f"
+  ],
+  "result": {
+    "id": "ic2:generator",
+    "count": 1
+  },
+  "show_notification": true
+}

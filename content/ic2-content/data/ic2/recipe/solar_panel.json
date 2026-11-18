@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "g": "minecraft:glass",
+    "d": "ic2:coal_dust",
+    "c": "ic2:circuit",
+    "i": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    "ggg",
+    "dcd",
+    "iii"
+  ],
+  "result": {
+    "id": "ic2:solar_panel",
+    "count": 1
+  },
+  "show_notification": true
+}

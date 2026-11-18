@@ -1,0 +1,10 @@
+# IndustrialCraft 2 (subset): cables, generator, solar panel, BatBox, electric furnace, macerator.
+# Names and textures: IndustrialCraft 2 (Team IC2). An unofficial fan port, not affiliated with the IC2 team.
+id = "ic2"
+name = "IndustrialCraft 2 (port)"
+version = "0.1.0"
+description = "A small IndustrialCraft 2 port: EU cables, generator, solar panel, BatBox, electric furnace and macerator."
+authors = ["Team IC2 (assets)"]
+api = "0.2"
+side = "both"
+capabilities = ["registries"]

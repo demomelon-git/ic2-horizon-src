@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "s": "minecraft:stone",
+    "i": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    "sss",
+    "sis",
+    "sss"
+  ],
+  "result": {
+    "id": "ic2:reinforced_stone",
+    "count": 4
+  },
+  "show_notification": true
+}

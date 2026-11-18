@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "ic2:block/electric_furnace"
+    },
+    "lit=true": {
+      "model": "ic2:block/electric_furnace_active"
+    }
+  }
+}
