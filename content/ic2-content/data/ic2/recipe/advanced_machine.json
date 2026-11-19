@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "g": "minecraft:gold_ingot",
+    "c": "ic2:circuit",
+    "m": "ic2:machine_casing"
+  },
+  "pattern": [
+    " g ",
+    "cmc",
+    " g "
+  ],
+  "result": {
+    "id": "ic2:advanced_machine",
+    "count": 1
+  },
+  "show_notification": true
+}

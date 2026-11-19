@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "ic2:furnace_casing",
+    "minecraft:hopper"
+  ],
+  "result": {
+    "id": "ic2:furnace_input",
+    "count": 1
+  }
+}

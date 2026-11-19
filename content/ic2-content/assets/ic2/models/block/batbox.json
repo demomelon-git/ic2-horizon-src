@@ -1,10 +1,12 @@
 {
-  "parent": "minecraft:block/orientable_with_bottom",
+  "parent": "minecraft:block/cube",
   "textures": {
-    "top": "ic2:block/batbox_top",
-    "bottom": "ic2:block/batbox_bottom",
-    "side": "ic2:block/batbox_side",
-    "front": "ic2:block/batbox_front",
-    "particle": "ic2:block/batbox_side"
+    "north": "ic2:block/batbox_north",
+    "south": "ic2:block/batbox_south",
+    "east": "ic2:block/batbox_east",
+    "west": "ic2:block/batbox_west",
+    "up": "ic2:block/batbox_up",
+    "down": "ic2:block/batbox_down",
+    "particle": "ic2:block/batbox_north"
   }
 }

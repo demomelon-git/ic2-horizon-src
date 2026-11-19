@@ -1,6 +1,6 @@
 [mod]
 id = "ic2"
-version = "0.1.0"
+version = "0.2.0"
 priority = 100
 
 # The Horizon commit this bundle was written for (the same one the ae2 bundle was built on).

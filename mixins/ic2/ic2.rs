@@ -1,5 +1,6 @@
-// IndustrialCraft 2 for Horizon: an EU network (cables), a generator, a solar panel, a BatBox, an electric furnace and a
-// macerator. Energy (EU) lives in each machine's block entity (the `eu` number in its data), and a server tick moves it
+// IndustrialCraft 2 for Horizon: an EU network (cables), a generator, a solar panel, a BatBox and an MFE, an electric
+// furnace, a macerator, a compressor, an extractor, and a 3x3x3 industrial furnace (a controller in the middle of 26
+// casings and ports). Energy (EU) lives in each machine's block entity (the `eu` number in its data), and a server tick moves it
 // along the cables between producers, consumers and batteries. No `//!` comments: module payloads can't hold inner
 // attributes.
 
@@ -42,8 +43,8 @@ thread_local! {
 fn role(block: &str) -> Option<Role> {
     match block {
         "ic2:generator" | "ic2:solar_panel" | "ic2:creative_generator" => Some(Role::Producer),
-        "ic2:electric_furnace" | "ic2:macerator" => Some(Role::Consumer),
-        "ic2:batbox" => Some(Role::Battery),
+        "ic2:electric_furnace" | "ic2:macerator" | "ic2:compressor" | "ic2:extractor" | "ic2:industrial_furnace" => Some(Role::Consumer),
+        "ic2:batbox" | "ic2:mfe_unit" => Some(Role::Battery),
         _ => None,
     }
 }
@@ -52,10 +53,22 @@ fn is_machine(block: &str) -> bool {
     role(block).is_some()
 }
 
+/// The two ports of the industrial furnace: they hold items but take no part in the EU network as devices.
+fn is_port(block: &str) -> bool {
+    matches!(block, "ic2:furnace_input" | "ic2:furnace_output")
+}
+
+/// Blocks that carry a block entity.
+fn has_entity(block: &str) -> bool {
+    is_machine(block) || is_port(block)
+}
+
 /// The most EU a machine holds.
 fn capacity(block: &str) -> i64 {
     match block {
         "ic2:batbox" => 40_000,
+        "ic2:mfe_unit" => 400_000,
+        "ic2:industrial_furnace" => 400,
         "ic2:creative_generator" => 1_000,
         "ic2:generator" => 100,
         "ic2:solar_panel" => 20,
@@ -69,6 +82,8 @@ fn cable_limit(block: &str) -> Option<i64> {
         "ic2:copper_cable" | "ic2:insulated_copper_cable" => Some(32),
         "ic2:gold_cable" => Some(128),
         "ic2:hv_cable" => Some(512),
+        // The industrial furnace's casings and ports carry EU to the controller inside.
+        "ic2:furnace_casing" | "ic2:furnace_input" | "ic2:furnace_output" => Some(128),
         _ => None,
     }
 }
@@ -77,13 +92,32 @@ fn cable_limit(block: &str) -> Option<i64> {
 fn spec(block: &str) -> Option<(i64, i64)> {
     match block {
         "ic2:electric_furnace" => Some((3, 130)),
-        "ic2:macerator" => Some((2, 300)),
+        "ic2:macerator" | "ic2:compressor" | "ic2:extractor" => Some((2, 300)),
         _ => None,
     }
 }
 
 fn has_lit(block: &str) -> bool {
-    matches!(block, "ic2:generator" | "ic2:electric_furnace" | "ic2:macerator")
+    matches!(block, "ic2:generator" | "ic2:electric_furnace" | "ic2:macerator" | "ic2:compressor" | "ic2:extractor")
+}
+
+/// The compressor's recipes: what goes in, how many, what comes out and how many.
+fn compress(item: &str) -> Option<(u32, &'static str, u32)> {
+    Some(match item {
+        "minecraft:sand" => (4, "minecraft:sandstone", 1),
+        "minecraft:snowball" => (4, "minecraft:snow_block", 1),
+        "minecraft:clay_ball" => (4, "minecraft:clay", 1),
+        "minecraft:ice" => (2, "minecraft:packed_ice", 1),
+        _ => return None,
+    })
+}
+
+/// The extractor's recipes: what goes in and what comes out.
+fn extract(item: &str) -> Option<(&'static str, u32)> {
+    Some(match item {
+        "minecraft:slime_ball" => ("ic2:rubber", 3),
+        _ => return None,
+    })
 }
 
 /// The macerator's recipes: what it crushes, what comes out and how many.
@@ -144,13 +178,13 @@ fn sunny(game: &Game<'_>) -> bool {
 
 /// `native_block_entity`: every machine gets a block entity of its own id.
 pub fn block_entity(block: &str, entity: &mut Option<(String, Compound)>) {
-    if entity.is_none() && is_machine(block) {
+    if entity.is_none() && has_entity(block) {
         *entity = Some((block.to_owned(), Compound::new()));
     }
 }
 
 pub fn block_entity_ticks(block: &str, ticks: &mut bool) {
-    if is_machine(block) {
+    if has_entity(block) {
         *ticks = true;
     }
 }
@@ -165,11 +199,26 @@ pub fn block_entity_container(block: &str, out: &mut Option<ModContainer>) {
             outputs: Vec::new(),
             menu: Some(block.to_owned()),
         }),
-        "ic2:electric_furnace" | "ic2:macerator" => Some(ModContainer {
+        "ic2:electric_furnace" | "ic2:macerator" | "ic2:compressor" | "ic2:extractor" => Some(ModContainer {
             slots: 2,
             faces: std::array::from_fn(|_| vec![0, 1]),
             inputs: vec![0],
             outputs: vec![1],
+            menu: Some(block.to_owned()),
+        }),
+        // The industrial furnace's ports: one slot each, in for the input port and out for the output port.
+        "ic2:furnace_input" => Some(ModContainer {
+            slots: 1,
+            faces: std::array::from_fn(|_| vec![0]),
+            inputs: vec![0],
+            outputs: Vec::new(),
+            menu: Some(block.to_owned()),
+        }),
+        "ic2:furnace_output" => Some(ModContainer {
+            slots: 1,
+            faces: std::array::from_fn(|_| vec![0]),
+            inputs: Vec::new(),
+            outputs: vec![0],
             menu: Some(block.to_owned()),
         }),
         _ => return,
@@ -179,12 +228,18 @@ pub fn block_entity_container(block: &str, out: &mut Option<ModContainer>) {
 /// `native_block_entity_tick`: a machine reports in and does its own work.
 pub fn block_entity_tick(game: &mut Game<'_>, pos: Pos, entity: &mut ModBlockEntity) {
     let id = entity.id.to_string();
+    if is_port(&id) {
+        if entity.items.is_empty() {
+            entity.items.resize(1, None);
+        }
+        return;
+    }
     if !is_machine(&id) {
         return;
     }
     let slots = match id.as_str() {
         "ic2:generator" => 1,
-        "ic2:electric_furnace" | "ic2:macerator" => 2,
+        "ic2:electric_furnace" | "ic2:macerator" | "ic2:compressor" | "ic2:extractor" => 2,
         _ => 0,
     };
     if entity.items.len() < slots {
@@ -206,7 +261,7 @@ pub fn block_entity_tick(game: &mut Game<'_>, pos: Pos, entity: &mut ModBlockEnt
             }
         }
         "ic2:creative_generator" => eu = cap,
-        "ic2:electric_furnace" | "ic2:macerator" => lit = process_tick(game, entity, &id, &mut eu),
+        "ic2:electric_furnace" | "ic2:macerator" | "ic2:compressor" | "ic2:extractor" => lit = process_tick(game, entity, &id, &mut eu),
         _ => {}
     }
     set_eu(entity, eu.clamp(0, cap));
@@ -254,11 +309,13 @@ fn generator_tick(game: &Game<'_>, entity: &mut ModBlockEntity, eu: &mut i64, ca
     running
 }
 
-/// What a machine makes of an item (none: it doesn't take it).
-fn recipe(game: &Game<'_>, block: &str, stack: &ItemStack) -> Option<ItemStack> {
+/// What a machine makes of an item and how many of the item it takes (none: it doesn't take it).
+fn recipe(game: &Game<'_>, block: &str, stack: &ItemStack) -> Option<(ItemStack, u32)> {
     match block {
-        "ic2:electric_furnace" => game.res.recipes().cook("minecraft:smelting", stack).map(|r| r.result.clone()),
-        "ic2:macerator" => macerate(&stack.item).map(|(id, n)| ItemStack::new(id, n)),
+        "ic2:electric_furnace" | "ic2:industrial_furnace" => game.res.recipes().cook("minecraft:smelting", stack).map(|r| (r.result.clone(), 1)),
+        "ic2:macerator" => macerate(&stack.item).map(|(id, n)| (ItemStack::new(id, n), 1)),
+        "ic2:compressor" => compress(&stack.item).map(|(need, id, n)| (ItemStack::new(id, n), need)),
+        "ic2:extractor" => extract(&stack.item).map(|(id, n)| (ItemStack::new(id, n), 1)),
         _ => None,
     }
 }
@@ -280,8 +337,9 @@ fn process_tick(game: &Game<'_>, entity: &mut ModBlockEntity, block: &str, eu: &
     let result = input.as_ref().and_then(|stack| recipe(game, block, stack));
     let mut progress = nbt_i64(&entity.nbt, "progress");
     let mut running = false;
+    let held = input.as_ref().map_or(0, |stack| stack.count);
     match result {
-        Some(out) if can_hold(game, entity, &out) => {
+        Some((out, need)) if held >= need && can_hold(game, entity, &out) => {
             if *eu >= cost {
                 *eu -= cost;
                 progress += 1;
@@ -291,7 +349,7 @@ fn process_tick(game: &Game<'_>, entity: &mut ModBlockEntity, block: &str, eu: &
                     if let Some(slot) = entity.items.first_mut()
                         && let Some(s) = slot.as_mut()
                     {
-                        s.count -= 1;
+                        s.count -= need;
                         if s.count == 0 {
                             *slot = None;
                         }
@@ -354,8 +412,12 @@ fn level_step(game: &mut Game<'_>) {
             game.native_set_block_property_with(pos, key, value, 3);
         }
     }
+    let furnaces: Vec<Pos> = devices.iter().filter(|(_, id)| id.as_str() == "ic2:industrial_furnace").map(|(p, _)| *p).collect();
     if devices.len() > 1 {
         network(game, devices);
+    }
+    for centre in furnaces {
+        big_furnace(game, &dim, centre);
     }
 }
 
@@ -477,11 +539,188 @@ fn distribute(game: &mut Game<'_>, ids: &HashMap<Pos, String>, members: &[Pos], 
     }
 }
 
+// ---------------------------------------------------------------- the industrial furnace
+
+/// EU a tick one working line takes, and ticks one smelt takes (the electric furnace takes 3 EU/t and 130 ticks).
+const BIG_COST: i64 = 6;
+const BIG_TOTAL: i64 = 40;
+const LINE_KEYS: [&str; 3] = ["line0", "line1", "line2"];
+
+/// The casing's `part` for each place in the 3x3x3: index is x * 9 + y * 3 + z.
+const PARTS: [&str; 27] = [
+    "p000",
+    "p001",
+    "p002",
+    "p010",
+    "p011",
+    "p012",
+    "p020",
+    "p021",
+    "p022",
+    "p100",
+    "p101",
+    "p102",
+    "p110",
+    "p111",
+    "p112",
+    "p120",
+    "p121",
+    "p122",
+    "p200",
+    "p201",
+    "p202",
+    "p210",
+    "p211",
+    "p212",
+    "p220",
+    "p221",
+    "p222",
+];
+
+/// The 26 positions around a controller, each with its place (0 to 2) along x, y and z.
+fn ring(centre: Pos) -> Vec<(Pos, usize, usize, usize)> {
+    let mut out = Vec::with_capacity(26);
+    for x in 0..3usize {
+        for y in 0..3usize {
+            for z in 0..3usize {
+                if x == 1 && y == 1 && z == 1 {
+                    continue;
+                }
+                out.push(([centre[0] + x as i32 - 1, centre[1] + y as i32 - 1, centre[2] + z as i32 - 1], x, y, z));
+            }
+        }
+    }
+    out
+}
+
+struct Shell {
+    casings: Vec<(Pos, &'static str)>,
+    inputs: Vec<Pos>,
+    outputs: Vec<Pos>,
+}
+
+/// The shell around a controller: all 26 places a casing or a port, with at least one input and one output port.
+fn shell(game: &Game<'_>, centre: Pos) -> Option<Shell> {
+    let mut found = Shell { casings: Vec::new(), inputs: Vec::new(), outputs: Vec::new() };
+    for (p, x, y, z) in ring(centre) {
+        match game.native_block(p).as_str() {
+            "ic2:furnace_casing" => found.casings.push((p, PARTS[x * 9 + y * 3 + z])),
+            "ic2:furnace_input" => found.inputs.push(p),
+            "ic2:furnace_output" => found.outputs.push(p),
+            _ => return None,
+        }
+    }
+    if found.inputs.is_empty() || found.outputs.is_empty() {
+        return None;
+    }
+    found.inputs.sort();
+    found.outputs.sort();
+    Some(found)
+}
+
+fn queue_part(dim: &str, pos: Pos, value: &'static str) {
+    SERVER.with_borrow_mut(|s| s.props.push((dim.to_owned(), pos, "part", value)));
+}
+
+/// One industrial furnace's tick. Whole, its casings show the big furnace picture (each casing's `part` says which piece
+/// of it); broken, they go plain again. Whole, each input port feeds the output port beside it in the sorted order
+/// (up to three lines), and a line smelts one item in BIG_TOTAL ticks for BIG_COST EU a tick.
+fn big_furnace(game: &mut Game<'_>, dim: &str, centre: Pos) {
+    let formed = game.native_with_mod_block_entity(centre, |c| nbt_i64(&c.nbt, "formed")).unwrap_or(0) != 0;
+    let found = shell(game, centre);
+    match (&found, formed) {
+        (Some(whole), false) => {
+            for (p, part) in &whole.casings {
+                queue_part(dim, *p, *part);
+            }
+            game.native_with_mod_block_entity(centre, |c| set_nbt_i64(&mut c.nbt, "formed", 1));
+        }
+        (None, true) => {
+            for (p, ..) in ring(centre) {
+                if game.native_block(p) == "ic2:furnace_casing" {
+                    queue_part(dim, p, "none");
+                }
+            }
+            game.native_with_mod_block_entity(centre, |c| {
+                set_nbt_i64(&mut c.nbt, "formed", 0);
+                for key in LINE_KEYS {
+                    set_nbt_i64(&mut c.nbt, key, 0);
+                }
+            });
+        }
+        _ => {}
+    }
+    let Some(whole) = found else { return };
+    let lines = whole.inputs.len().min(whole.outputs.len()).min(3);
+    let (mut eu, mut progress) = game
+        .native_with_mod_block_entity(centre, |c| (eu_of(c), LINE_KEYS.map(|k| nbt_i64(&c.nbt, k))))
+        .unwrap_or((0, [0; 3]));
+    for i in 0..lines {
+        let input_port = whole.inputs[i];
+        let output_port = whole.outputs[i];
+        let input = game.native_with_mod_block_entity(input_port, |e| e.items.first().cloned().flatten()).flatten();
+        let Some(stack) = input else {
+            progress[i] = 0;
+            continue;
+        };
+        let Some((out, need)) = recipe(game, "ic2:industrial_furnace", &stack) else {
+            progress[i] = 0;
+            continue;
+        };
+        if stack.count < need {
+            progress[i] = 0;
+            continue;
+        }
+        let limit = max_stack(game, &out.item);
+        let room = game
+            .native_with_mod_block_entity(output_port, |e| match e.items.first() {
+                Some(None) => true,
+                Some(Some(held)) => &*held.item == &*out.item && held.count + out.count <= limit,
+                None => false,
+            })
+            .unwrap_or(false);
+        if !room || eu < BIG_COST {
+            continue;
+        }
+        eu -= BIG_COST;
+        progress[i] += 1;
+        if progress[i] >= BIG_TOTAL {
+            progress[i] = 0;
+            game.native_with_mod_block_entity(input_port, |e| {
+                if let Some(slot) = e.items.first_mut()
+                    && let Some(s) = slot.as_mut()
+                {
+                    s.count -= need;
+                    if s.count == 0 {
+                        *slot = None;
+                    }
+                }
+            });
+            game.native_with_mod_block_entity(output_port, |e| match e.items.first_mut() {
+                Some(slot @ None) => *slot = Some(out.clone()),
+                Some(Some(held)) => held.count += out.count,
+                _ => {}
+            });
+            game.native_block_entity_sync(input_port);
+            game.native_block_entity_sync(output_port);
+        }
+    }
+    game.native_with_mod_block_entity(centre, |c| {
+        set_eu(c, eu);
+        for (key, value) in LINE_KEYS.iter().zip(progress) {
+            set_nbt_i64(&mut c.nbt, key, value);
+        }
+    });
+}
+
 // ---------------------------------------------------------------- windows
 
 /// The machines that open a window (the generator's, the electric furnace's and the macerator's).
 fn has_window(block: &str) -> bool {
-    matches!(block, "ic2:generator" | "ic2:electric_furnace" | "ic2:macerator")
+    matches!(
+        block,
+        "ic2:generator" | "ic2:electric_furnace" | "ic2:macerator" | "ic2:compressor" | "ic2:extractor" | "ic2:furnace_input" | "ic2:furnace_output"
+    )
 }
 
 thread_local! {
@@ -494,7 +733,8 @@ pub fn screen(_game: &Game<'_>, block: &str, out: &mut Option<super::native_hook
     use super::native_hooks::NativeScreen;
     let slots = match block {
         "ic2:generator" => vec![Some([80.0, 40.0])],
-        "ic2:electric_furnace" | "ic2:macerator" => vec![Some([56.0, 17.0]), Some([116.0, 35.0])],
+        "ic2:electric_furnace" | "ic2:macerator" | "ic2:compressor" | "ic2:extractor" => vec![Some([56.0, 17.0]), Some([116.0, 35.0])],
+        "ic2:furnace_input" | "ic2:furnace_output" => vec![Some([80.0, 35.0])],
         _ => return,
     };
     *out = Some(NativeScreen {
@@ -515,8 +755,15 @@ pub fn screen_draw(game: &Game<'_>, block: &str, data: &[i32], batch: &mut horiz
     }
     SCREEN_DATA.with_borrow_mut(|d| *d = data.to_vec());
     let [ox, oy] = origin;
-    let sheet = if block == "ic2:generator" { "ic2:gui/generator" } else { "ic2:gui/machine" };
+    let sheet = match block {
+        "ic2:generator" => "ic2:gui/generator",
+        "ic2:furnace_input" | "ic2:furnace_output" => "ic2:gui/port",
+        _ => "ic2:gui/machine",
+    };
     game.native_sprite(batch, sheet, [0.0, 0.0, 176.0, 166.0], [ox, oy, 176.0, 166.0]);
+    if is_port(block) {
+        return;
+    }
     let percent = data.first().copied().unwrap_or(0).clamp(0, 100);
     let eu = data.get(1).copied().unwrap_or(0).max(0);
     let cap = capacity(block) as i32;
@@ -542,7 +789,7 @@ pub fn screen_draw(game: &Game<'_>, block: &str, data: &[i32], batch: &mut horiz
 
 /// `native_screen_tooltip`: the EU over the energy bar.
 pub fn screen_tooltip(_game: &Game<'_>, block: &str, at: [f32; 2], lines: &mut Vec<String>) {
-    if has_window(block) && at[0] >= 34.0 && at[0] < 42.0 && at[1] >= 22.0 && at[1] < 62.0 {
+    if has_window(block) && !is_port(block) && at[0] >= 34.0 && at[0] < 42.0 && at[1] >= 22.0 && at[1] < 62.0 {
         let eu = SCREEN_DATA.with_borrow(|d| d.get(1).copied().unwrap_or(0));
         lines.push(format!("{eu} / {} EU", capacity(block)));
     }
@@ -563,6 +810,10 @@ pub fn right_click(game: &mut Game<'_>, pos: Pos, _canceled: &mut bool) {
     if !is_machine(&block) || has_window(&block) {
         return;
     }
-    let eu = game.native_with_mod_block_entity(pos, |e| eu_of(e)).unwrap_or(0);
+    let (eu, formed) = game.native_with_mod_block_entity(pos, |e| (eu_of(e), nbt_i64(&e.nbt, "formed"))).unwrap_or((0, 0));
+    if block == "ic2:industrial_furnace" && formed == 0 {
+        say(game, "§cNot built: surround it with 26 furnace casings (at least one input port and one output port)");
+        return;
+    }
     say(game, &format!("§e{eu} / {} EU", capacity(&block)));
 }

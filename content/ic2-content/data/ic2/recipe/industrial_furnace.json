@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "ic2:electric_furnace",
+    "ic2:advanced_machine",
+    "ic2:circuit",
+    "ic2:circuit"
+  ],
+  "result": {
+    "id": "ic2:industrial_furnace",
+    "count": 1
+  }
+}

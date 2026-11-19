@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "ic2:machine_casing",
+    "ic2:circuit",
+    "minecraft:hopper"
+  ],
+  "result": {
+    "id": "ic2:extractor",
+    "count": 1
+  }
+}

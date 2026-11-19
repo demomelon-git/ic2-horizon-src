@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "north": "ic2:block/mfe_unit_north",
+    "south": "ic2:block/mfe_unit_south",
+    "east": "ic2:block/mfe_unit_east",
+    "west": "ic2:block/mfe_unit_west",
+    "up": "ic2:block/mfe_unit_up",
+    "down": "ic2:block/mfe_unit_down",
+    "particle": "ic2:block/mfe_unit_north"
+  }
+}

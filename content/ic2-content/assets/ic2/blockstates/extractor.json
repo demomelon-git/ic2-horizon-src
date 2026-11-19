@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "ic2:block/extractor"
+    },
+    "lit=true": {
+      "model": "ic2:block/extractor_active"
+    }
+  }
+}

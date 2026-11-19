@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "g": "ic2:gold_cable",
+    "b": "ic2:batbox",
+    "a": "ic2:advanced_machine"
+  },
+  "pattern": [
+    "gbg",
+    "bab",
+    "gbg"
+  ],
+  "result": {
+    "id": "ic2:mfe_unit",
+    "count": 1
+  },
+  "show_notification": true
+}

@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=false": {
+      "model": "ic2:block/compressor"
+    },
+    "lit=true": {
+      "model": "ic2:block/compressor_active"
+    }
+  }
+}
